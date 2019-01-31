@@ -4,7 +4,7 @@ const child_process = require("child_process");
 
 var db = new sqlite3.Database('./tasks.db', (err) => {
 	  if (err) {
-		return console.error(err.message);
+			return console.error(err.message);
 	  }
 	  console.log('Worker connected to the SQlite database.');
 	  doLoop();
@@ -29,25 +29,24 @@ function doLoop(){
 					// update db
 					db.run('UPDATE tasks SET status = 1 WHERE id = ?', [row.id], function(err){
 					  if(err){
-						return console.error(err.message);
-					  } else {
-						console.log("Processing task...");
-						// process it
-						var r = worker.process_task(row.url, row.id);
-						
-						console.log(r);
-						// update db
-						db.run('UPDATE tasks SET status = 2, file = ? WHERE id = ?', [r.file, row.id], function(err){
-						  if(err){
 							return console.error(err.message);
-						  } else {
+					  } else {
+							console.log("Processing task...");
+							// process it
+							var r = worker.process_task(row.url, row.id);
 							
-							// ok
-							wait();
-						  }
-						});						
+							// update db
+							db.run('UPDATE tasks SET status = 2, file = ?, output = ? WHERE id = ?', [r.file, r.output, row.id], function(err){
+								if(err){
+									return console.error(err.message);
+								} else {		
+									// ok
+									wait();
+								}
+							});						
 					  }
 					});
+
 				} else {
 					console.info("No more task to process... sleeping 5 seconds");
 					wait();
